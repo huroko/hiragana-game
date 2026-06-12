@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ひらがなゲーム</title>
+</head>
+<body>
+
+<h1>ひらがなゲーム</h1>
+
+<button onclick="showWord()">
+スタート
+</button>
+
+<p id="word"></p>
+
+<script>
+const words = [
+  "あ",
+  "い",
+  "う",
+  "え",
+  "お"
+];
+
+function showWord() {
+  const random =
+    words[Math.floor(Math.random() * words.length)];
+
+  document.getElementById("word").textContent =
+    random;
+}
+</script>
+
+</body>
+</html>
+
