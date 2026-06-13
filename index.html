@@ -3,148 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ひらがな えもじくいず</title>
+    <title>ひらがなゲームをやってみよう！</title>
     <style>
-        /* 女の子向けのゆめかわデザイン */
+        /* デザイン：ゆめかわいいパステル調 */
+        :root {
+            --pink-bg: #fff0f5;
+            --main-pink: #ff69b4;
+            --sub-pink: #ffb6c1;
+            --white: #ffffff;
+        }
+
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #fff0f5; /* パステルピンク */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            background-color: var(--pink-bg);
             margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             overflow: hidden;
             user-select: none;
         }
 
-        /* スコア表示 */
-        #score-container {
-            font-size: 24px;
-            color: #ff69b4;
-            font-weight: bold;
-            margin-bottom: 15px;
-            background: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        /* 画面の共通スタイル */
+        .screen {
+            display: none; /* 初期は非表示 */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
         }
 
-        /* クイズ画面全体を包むカード */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- 1. タイトル画面 --- */
+        #title-screen {
+            display: flex; /* 最初に見せる */
+            background-image: linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.4)), url('http://googleusercontent.com/image_collection/image_retrieval/179522968012967515');
+            background-size: cover;
+        }
+
+        .title-logo {
+            font-size: 60px;
+            color: var(--main-pink);
+            text-shadow: 3px 3px 0 white;
+            margin-bottom: 40px;
+        }
+
+        .start-btn {
+            font-size: 32px;
+            padding: 20px 60px;
+            background: linear-gradient(#ff92d0, #ff69b4);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 8px 0 #db4d93;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* --- 2. クイズ画面 --- */
         #quiz-box {
             background: white;
             padding: 30px;
             border-radius: 30px;
             box-shadow: 0 8px 20px rgba(255, 182, 193, 0.4);
-            border: 4px solid #ffb6c1;
-            text-align: center;
-            width: 320px;
+            border: 4px solid var(--sub-pink);
+            width: 350px;
         }
 
-        /* 大きな絵文字お題 */
-        #emoji-display {
-            font-size: 100px;
-            margin: 0;
-            line-height: 1.2;
+        #progress-bar {
+            width: 100%;
+            height: 15px;
+            background: #eee;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
         }
 
-        /* ヒント表示エリア */
-        #hint-display {
-            font-size: 20px;
-            color: #ff1493;
-            font-weight: bold;
-            height: 30px;
-            margin-top: 10px;
+        #progress-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--main-pink);
+            transition: width 0.3s;
         }
 
-        /* ヒントボタン */
-        #hint-btn {
-            background-color: #ffb6c1;
-            color: white;
-            border: none;
-            padding: 6px 15px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 15px;
-            cursor: pointer;
-            margin-bottom: 15px;
-            box-shadow: 0 3px 0 #db4d93;
-        }
-        #hint-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 0 #db4d93;
-        }
-
-        /* 選択肢のボタンが並ぶエリア */
-        #choices-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        /* 5つのひらがなボタン */
+        #emoji-display { font-size: 100px; margin: 0; }
+        
         .choice-btn {
-            font-size: 28px;
-            font-weight: bold;
-            color: #ff1493;
-            background-color: #fff0f5;
-            border: 3px solid #ffb6c1;
-            width: 52px;
-            height: 52px;
-            border-radius: 15px;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #ffb6c1;
-            transition: all 0.1s;
-        }
-        .choice-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #ffb6c1;
+            font-size: 28px; font-weight: bold; color: var(--main-pink);
+            background-color: var(--pink-bg); border: 3px solid var(--sub-pink);
+            width: 55px; height: 55px; border-radius: 15px; cursor: pointer;
+            margin: 5px; box-shadow: 0 4px 0 var(--sub-pink);
         }
 
-        /* つぎへボタン（正解したときだけ見えるようにする） */
-        #next-btn {
-            margin-top: 25px;
-            font-size: 22px;
-            font-weight: bold;
-            color: white;
-            background: linear-gradient(to bottom, #ff92d0, #ff69b4);
-            border: none;
-            padding: 10px 35px;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #db4d93;
-            display: none; /* 初期状態は非表示 */
+        /* --- 3. クリア（ごほうび）画面 --- */
+        #clear-screen {
+            background-color: white;
         }
-        #next-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 #db4d93;
+
+        .sticker-container {
+            width: 300px;
+            height: 300px;
+            margin: 20px;
+            animation: popIn 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+        }
+
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .sticker-img {
+            width: 100%; height: 100%; object-fit: contain;
+        }
+
+        .congrats-text {
+            font-size: 40px; color: var(--main-pink); font-weight: bold;
+        }
+
+        #restart-btn {
+            margin-top: 20px; font-size: 20px; color: #666; background: none; border: underline; cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <div id="score-container">てんすう： <span id="score">0</span> てん</div>
+    <div id="title-screen" class="screen">
+        <h1 class="title-logo">ひらがなゲームを<br>やってみよう！</h1>
+        <button class="start-btn" onclick="startGame()">はじめる！</button>
+    </div>
 
-    <div id="quiz-box">
-        <p id="emoji-display">❓</p>
-        
-        <button id="hint-btn" onclick="showHint()">💡 ひんと</button>
-        <div id="hint-display"></div>
-
-        <div id="choices-container">
-            <button class="choice-btn" onclick="checkAnswer(this)">？</button>
-            <button class="choice-btn" onclick="checkAnswer(this)">？</button>
-            <button class="choice-btn" onclick="checkAnswer(this)">？</button>
-            <button class="choice-btn" onclick="checkAnswer(this)">？</button>
-            <button class="choice-btn" onclick="checkAnswer(this)">？</button>
+    <div id="game-screen" class="screen">
+        <div id="score-container" style="font-weight:bold; color:var(--main-pink); margin-bottom:10px;">
+            あと <span id="remaining">10</span> もんで クリア！
         </div>
+        <div id="progress-bar"><div id="progress-fill"></div></div>
 
-        <button id="next-btn" onclick="nextQuestion()">つぎへ ➔</button>
+        <div id="quiz-box">
+            <p id="emoji-display">❓</p>
+            <button id="hint-btn" style="background:var(--sub-pink); border:none; border-radius:10px; color:white; padding:5px 15px; margin:10px;" onclick="showHint()">💡 ひんと</button>
+            <div id="hint-text" style="height:25px; color:var(--main-pink); font-weight:bold;"></div>
+            
+            <div id="choices-container">
+                </div>
+            <button id="next-btn" style="display:none; margin-top:20px; padding:10px 30px; background:var(--main-pink); color:white; border:none; border-radius:20px; font-weight:bold;" onclick="nextQuestion()">つぎへ！</button>
+        </div>
+    </div>
+
+    <div id="clear-screen" class="screen">
+        <div class="congrats-text">10問せいかい！<br>おめでとう！</div>
+        <div class="sticker-container">
+            <img id="reward-sticker" class="sticker-img" src="" alt="ごほうびシール">
+        </div>
+        <div style="font-size:24px; color:#555;">ごほうびシールを あげるね！</div>
+        <button id="restart-btn" onclick="location.reload()">もういちど あそぶ</button>
     </div>
 
     <script>
-        // ① 50音クイズデータ（ここに「か行」以降も同じ形式でどんどん追加できます！）
+        // データ設定
         const quizData = [
             { emoji: "🍎", word: "りんご", answer: "り" },
             { emoji: "🐱", word: "ねこ", answer: "ね" },
@@ -154,122 +171,110 @@
             { emoji: "🍉", word: "すいか", answer: "す" },
             { emoji: "🎈", word: "ふうせん", answer: "ふ" },
             { emoji: "🍌", word: "ばなな", answer: "ば" },
-            { emoji: "🐼", word: "ぱんだ", answer: "ぱ" }
+            { emoji: "🐼", word: "ぱんだ", answer: "ぱ" },
+            { emoji: "🦁", word: "らいおん", answer: "ら" }
         ];
 
-        // ハズレボタンを作るための「全ひらがなリスト」
-        const allChars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれわ";
+        const stickers = [
+            'http://googleusercontent.com/image_collection/image_retrieval/14664035387423763527', // うさぎ
+            'http://googleusercontent.com/image_collection/image_retrieval/5013779276119358917', // にじ
+            'http://googleusercontent.com/image_collection/image_retrieval/10640471539218616802'  // どうぶつ
+        ];
 
+        let correctCount = 0;
         let currentQuestion = null;
-        let score = 0;
-        let isAnswered = false; // 正解済みかどうかのフラグ
+        const targetCount = 10;
 
-        // ② サウンド再生（Web Audio API）
+        // 音声設定
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playSound(type) {
+        function playSound(f1, f2, duration) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            if (type === 'correct') {
-                // 正解の音「ピンポーン！」（高い2音）
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime); // ミ
-                osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.15); // ラ
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.4);
-            } else if (type === 'wrong') {
-                // 不正解の音「ぶぶー」（低い音）
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            }
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(f1, audioCtx.currentTime);
+            if(f2) osc.frequency.setValueAtTime(f2, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
 
-        // ③ クイズの生成
-        function makeQuestion() {
-            isAnswered = false;
-            document.getElementById("next-btn").style.display = "none"; // 次へボタンを隠す
-            document.getElementById("hint-display").innerText = ""; // ヒントを消す
-            document.getElementById("hint-btn").style.display = "inline-block"; // ヒントボタンを出す
+        // 画面切り替え
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'flex';
+        }
 
-            // ランダムにお題を1つ選ぶ
+        function startGame() {
+            correctCount = 0;
+            showScreen('game-screen');
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (correctCount >= targetCount) {
+                showClear();
+                return;
+            }
+
+            document.getElementById("next-btn").style.display = "none";
+            document.getElementById("hint-text").innerText = "";
+            document.getElementById("hint-btn").style.display = "inline-block";
+            
+            // 進捗更新
+            document.getElementById("remaining").innerText = targetCount - correctCount;
+            document.getElementById("progress-fill").style.width = (correctCount / targetCount * 100) + "%";
+
+            // 問題作成
             currentQuestion = quizData[Math.floor(Math.random() * quizData.length)];
             document.getElementById("emoji-display").innerText = currentQuestion.emoji;
 
-            // 選択肢（5文字）を作る。まずは正解の文字を入れる
             let choices = [currentQuestion.answer];
-
-            // 被らないようにハズレの文字を4つ選ぶ
-            while (choices.length < 5) {
-                let randomChar = allChars[Math.floor(Math.random() * allChars.length)];
-                if (!choices.includes(randomChar)) {
-                    choices.push(randomChar);
-                }
+            while(choices.length < 5) {
+                let char = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれわ"[Math.floor(Math.random()*44)];
+                if(!choices.includes(char)) choices.push(char);
             }
-
-            // 選択肢の配列をシャッフル（正解が毎回違う位置になるように）
             choices.sort(() => Math.random() - 0.5);
 
-            // ボタンに文字を割り当てる
-            const buttons = document.querySelectorAll(".choice-btn");
-            buttons.forEach((btn, index) => {
-                btn.innerText = choices[index];
-                btn.style.backgroundColor = "#fff0f5"; // 色を元に戻す
-                btn.style.color = "#ff1493";
-                btn.style.opacity = "1";
-            } );
+            const container = document.getElementById("choices-container");
+            container.innerHTML = "";
+            choices.forEach(c => {
+                const btn = document.createElement("button");
+                btn.className = "choice-btn";
+                btn.innerText = c;
+                btn.onclick = () => checkAnswer(btn);
+                container.appendChild(btn);
+            });
         }
 
-        // ④ ヒントを表示する
         function showHint() {
-            if (isAnswered) return;
-            // 「りからはじまるよ」のように表示
-            document.getElementById("hint-display").innerText = `「${currentQuestion.answer}」からはじまるよ`;
-            document.getElementById("hint-btn").style.display = "none"; // ボタンは隠す
+            document.getElementById("hint-text").innerText = `「${currentQuestion.answer}」からはじまるよ！`;
+            document.getElementById("hint-btn").style.display = "none";
         }
 
-        // ⑤ 答え合わせ
-        function checkAnswer(clickedButton) {
-            if (isAnswered) return; // すでに正解してたら何もしない
-
-            if (clickedButton.innerText === currentQuestion.answer) {
-                // ★ 正解！
-                playSound('correct');
-                score += 20; // 20点プラス
-                document.getElementById("score").innerText = score;
-                isAnswered = true;
-
-                // 正解ボタンをピカピカ（ピンク）にして、他を少し薄くする
-                clickedButton.style.backgroundColor = "#ff69b4";
-                clickedButton.style.color = "white";
-                
-                // 次へボタンを表示
+        function checkAnswer(btn) {
+            if (btn.innerText === currentQuestion.answer) {
+                playSound(523, 659, 0.5); // ピンポーン
+                btn.style.background = "#ff69b4"; btn.style.color = "white";
+                correctCount++;
                 document.getElementById("next-btn").style.display = "inline-block";
                 document.getElementById("hint-btn").style.display = "none";
-                document.getElementById("hint-display").innerText = `せいかい！「${currentQuestion.word}」だね！`;
+                document.getElementById("hint-text").innerText = `せいかい！「${currentQuestion.word}」だね！`;
+                // 全ボタン無効化
+                document.querySelectorAll(".choice-btn").forEach(b => b.onclick = null);
             } else {
-                // ★ 不正解
-                playSound('wrong');
-                // 点数は減らさず、間違えたボタンだけ「おてつき」としてグレーにする
-                clickedButton.style.opacity = "0.4";
+                playSound(200, null, 0.2); // ブブー
+                btn.style.opacity = "0.4";
             }
         }
 
-        // ⑥ 次の問題へ
-        function nextQuestion() {
-            makeQuestion();
+        function showClear() {
+            // ファンファーレ音
+            playSound(523, 1046, 1.0);
+            // ランダムにシールを選ぶ
+            const randomSticker = stickers[Math.floor(Math.random() * stickers.length)];
+            document.getElementById("reward-sticker").src = randomSticker;
+            showScreen('clear-screen');
         }
-
-        // ゲーム起動
-        makeQuestion();
     </script>
 </body>
 </html>
