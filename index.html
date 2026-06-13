@@ -275,7 +275,19 @@
         let currentQuestion = null;
         const targetCount = 10;
 
+        // 読み上げ用の関数
+        function speak(text) {
+            // 前の読み上げをキャンセル
+            window.speechSynthesis.cancel();
+            const uttr = new SpeechSynthesisUtterance(text);
+            uttr.lang = 'ja-JP';
+            uttr.pitch = 1.3; // 少し高めの声
+            uttr.rate = 1.1;  // 少し速め
+            window.speechSynthesis.speak(uttr);
+        }
+
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
         function playSound(f1, f2, duration) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -333,14 +345,23 @@
             });
         }
 
-        function showHint() {
-            document.getElementById("hint-text").innerText = `「${currentQuestion.answer}」からはじまるよ！`;
+                function showHint() {
+            const hintMsg = `「${currentQuestion.answer}」からはじまるよ！`;
+            document.getElementById("hint-text").innerText = hintMsg;
             document.getElementById("hint-btn").style.display = "none";
+            speak(hintMsg);
         }
 
         function checkAnswer(btn) {
-            if (btn.innerText === currentQuestion.answer) {
+            const char = btn.innerText;
+            if (char === currentQuestion.answer) {
                 playSound(523, 659, 0.5); 
+                speak(char); // まず文字を読んでから
+                
+                setTimeout(() => {
+                    speak(`せいかい！ ${currentQuestion.word}、だね！`);
+                }, 400);
+
                 btn.style.background = "#ff69b4"; btn.style.color = "white";
                 correctCount++;
                 document.getElementById("next-btn").style.display = "inline-block";
@@ -349,12 +370,14 @@
                 document.querySelectorAll(".choice-btn").forEach(b => b.onclick = null);
             } else {
                 playSound(200, null, 0.2); 
+                speak(char); // 間違えても文字は読み上げる
                 btn.style.opacity = "0.4";
             }
         }
 
         function showClear() {
             playSound(523, 1046, 1.0);
+            speak("10問せいかい！おめでとう！ごほうびシールをあげるね！");
             const randomSticker = stickers[Math.floor(Math.random() * stickers.length)];
             document.getElementById("reward-sticker").src = randomSticker;
             showScreen('clear-screen');
