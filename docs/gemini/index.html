@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ひらがなゲームをやってみよう！</title>
+    <style>
+        /* デザイン：ゆめかわいいパステル調 */
+        :root {
+            --pink-bg: #fff0f5;
+            --main-pink: #ff69b4;
+            --sub-pink: #ffb6c1;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--pink-bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* 画面の共通スタイル */
+        .screen {
+            display: none; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- 1. タイトル画面 --- */
+        #title-screen {
+            display: flex; 
+            background-color: var(--pink-bg);
+        }
+
+        .title-logo {
+            font-size: 50px;
+            color: var(--main-pink);
+            text-shadow: 3px 3px 0 white;
+            margin-bottom: 40px;
+            line-height: 1.4;
+        }
+
+        /* 共通の可愛いぷにぷにボタン */
+        .pink-bubble-btn {
+            font-size: 28px;
+            padding: 15px 50px;
+            background: linear-gradient(#ff92d0, #ff69b4);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 8px 0 #db4d93;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.1s;
+        }
+
+        .pink-bubble-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #db4d93;
+        }
+
+        /* --- 2. クイズ画面 --- */
+        #quiz-box {
+            background: white;
+            padding: 30px 20px; /* 横の余白を少し広げました */
+            border-radius: 30px;
+            box-shadow: 0 8px 20px rgba(255, 182, 193, 0.4);
+            border: 4px solid var(--sub-pink);
+            width: 360px; /* 横幅を少しだけ広げました */
+            height: 380px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between; 
+            box-sizing: border-box;
+        }
+
+        #progress-container {
+            width: 360px;
+            margin-bottom: 10px;
+        }
+
+        #progress-bar {
+            width: 100%;
+            height: 15px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--main-pink);
+            transition: width 0.3s;
+        }
+
+        #emoji-display { 
+            font-size: 90px; 
+            margin: 0; 
+            line-height: 1;
+        }
+
+        /* ヒント・つぎへ等のボタン配置エリア */
+        .action-area {
+            height: 40px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* ★修正：5つのボタンが絶対に1行に収まる配置設定 */
+        #choices-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            gap: 6px; /* ボタン同士の隙間を固定 */
+        }
+
+        /* ★修正：ボタンのサイズを微調整 */
+        .choice-btn {
+            font-size: 26px; /* 文字サイズをわずかに調整 */
+            font-weight: bold; 
+            color: var(--main-pink);
+            background-color: var(--pink-bg); 
+            border: 3px solid var(--sub-pink);
+            width: 54px;  /* 5つが1行に綺麗に並ぶ幅 */
+            height: 54px; 
+            border-radius: 15px; 
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--sub-pink);
+            transition: all 0.1s;
+            box-sizing: border-box;
+        }
+        .choice-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--sub-pink);
+        }
+
+        /* --- 3. クリア（ごほうび）画面 --- */
+        #clear-screen {
+            background-color: white;
+        }
+
+        .sticker-container {
+            width: 250px;
+            height: 250px;
+            margin: 20px;
+            animation: popIn 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+        }
+
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .sticker-img {
+            width: 100%; height: 100%; object-fit: contain;
+        }
+
+        .congrats-text {
+            font-size: 36px; color: var(--main-pink); font-weight: bold;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="title-screen" class="screen">
+        <h1 class="title-logo">ひらがなゲームを<br>やってみよう！</h1>
+        <button class="pink-bubble-btn" onclick="startGame()">はじめる！</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div id="progress-container">
+            <div id="score-container" style="font-weight:bold; color:var(--main-pink); margin-bottom:8px; font-size:20px;">
+                あと <span id="remaining">10</span> もんで クリア！
+            </div>
+            <div id="progress-bar"><div id="progress-fill"></div></div>
+        </div>
+
+        <div id="quiz-box">
+            <p id="emoji-display">❓</p>
+            
+            <div class="action-area">
+                <button id="hint-btn" style="background:var(--sub-pink); border:none; border-radius:12px; color:white; padding:6px 18px; font-size:16px; font-weight:bold; cursor:pointer;" onclick="showHint()">💡 ひんと</button>
+                <div id="hint-text" style="color:var(--main-pink); font-weight:bold; font-size:18px;"></div>
+            </div>
+            
+            <div id="choices-container">
+                </div>
+
+            <div class="action-area">
+                <button id="next-btn" style="display:none; padding:8px 25px; background:var(--main-pink); color:white; border:none; border-radius:20px; font-weight:bold; font-size:18px; cursor:pointer;" onclick="nextQuestion()">つぎへ！ ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="clear-screen" class="screen">
+        <div class="congrats-text">10もん せいかい！<br>おめでとう！</div>
+        <div class="sticker-container">
+            <img id="reward-sticker" class="sticker-img" src="" alt="ごほうびシール">
+        </div>
+        <div style="font-size:22px; color:#555; font-weight:bold; margin-bottom:30px;">ごほうびシールを あげるね！</div>
+        <button class="pink-bubble-btn" style="font-size:22px; padding:12px 40px;" onclick="location.reload()">もういちど あそぶ</button>
+    </div>
+
+    <script>
+        // 50音（清音44文字）のデータ
+        const quizData = [
+            { emoji: "🍦", word: "あいす", answer: "あ" },
+            { emoji: "🍓", word: "いちご", answer: "い" },
+            { emoji: "🐰", word: "うさぎ", answer: "う" },
+            { emoji: "✏️", word: "えんぴつ", answer: "え" },
+            { emoji: "🍙", word: "おにぎり", answer: "お" },
+            { emoji: "🐢", word: "かめ", answer: "か" },
+            { emoji: "🦊", word: "きつね", answer: "き" },
+            { emoji: "🐻", word: "くま", answer: "く" },
+            { emoji: "🍰", word: "けーき", answer: "け" },
+            { emoji: "🪙", word: "コイン", answer: "こ" },
+            { emoji: "🐟", word: "さかな", answer: "さ" },
+            { emoji: "🦌", word: "しか", answer: "し" },
+            { emoji: "🍉", word: "すいか", answer: "す" },
+            { emoji: "🧼", word: "せっけん", answer: "せ" },
+            { emoji: "🐘", word: "ぞう", answer: "そ" }, 
+            { emoji: "🐙", word: "たこ", answer: "た" },
+            { emoji: "🦋", word: "ちょうちょ", answer: "ち" },
+            { emoji: "🌙", word: "つき", answer: "つ" },
+            { emoji: "🖐️", word: "て", answer: "て" },
+            { emoji: "🍅", word: "とまと", answer: "と" },
+            { emoji: "🧄", word: "にんにく", answer: "に" },
+            { emoji: "🐱", word: "ねこ", answer: "ね" },
+            { emoji: "📖", word: "のーと", answer: "の" },
+            { emoji: "🪰", word: "はえ", answer: "は" }, 
+            { emoji: "🛩️", word: "ひこうき", answer: "ひ" },
+            { emoji: "🎈", word: "ふうせん", answer: "ふ" },
+            { emoji: "🐍", word: "へび", answer: "へ" },
+            { emoji: "📕", word: "ほん", answer: "ほ" },
+            { emoji: "😷", word: "ますく", answer: "ま" },
+            { emoji: "🍊", word: "みかん", answer: "み" },
+            { emoji: "🐛", word: "むし", answer: "む" },
+            { emoji: "🔥", word: "ひ", answer: "め" },
+            { emoji: "🍑", word: "もも", answer: "も" },
+            { emoji: "🐐", word: "やぎ", answer: "や" },
+            { emoji: "💍", word: "ゆびわ", answer: "ゆ" },
+            { emoji: "👕", word: "ようふく", answer: "よ" },
+            { emoji: "🦁", word: "らいおん", answer: "ら" },
+            { emoji: "🍎", word: "りんご", answer: "り" },
+            { emoji: "🐒", word: "さる", answer: "る" },
+            { emoji: "🍋", word: "れもん", answer: "れ" },
+            { emoji: "🕯️", word: "ろうそく", answer: "ろ" },
+            { emoji: "🐊", word: "わに", answer: "わ" }
+        ];
+
+        const allChars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれわ";
+
+        // シール画像のURL設定
+        const stickers = [
+            'https://png.pngtree.com/png-vector/20260323/ourmid/pngtree-cute-cartoon-dragon-holding-glowing-star-sticker-png-image_18972557.webp',
+            'https://i5.walmartimages.com/seo/Shiny-Shake-3D-Stickers-Girls-Meafeng-12-Sheets-3D-Puffy-Glitter-Stickers-Kids-Toddlers-Gifts-Teacher-Reward-Craft-Scrapbooking-Heart-Star-Candy-Cute_177a3f04-49d3-4d57-ba2f-e3747f9b43ba.87b6d2445c41446aaf2af35a9e6517c1.jpeg',
+            'https://static.vecteezy.com/system/resources/thumbnails/036/677/835/small_2x/kid-s-reward-stickers-collection-with-cute-funny-animals-award-achievement-encouraging-labels-for-motivation-of-success-useful-for-teacher-reward-for-children-good-job-great-amazing-perfect-vector.jpg'
+        ];
+
+        let correctCount = 0;
+        let currentQuestion = null;
+        const targetCount = 10;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(f1, f2, duration) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(f1, audioCtx.currentTime);
+            if(f2) osc.frequency.setValueAtTime(f2, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function startGame() {
+            correctCount = 0;
+            showScreen('game-screen');
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (correctCount >= targetCount) {
+                showClear();
+                return;
+            }
+
+            document.getElementById("next-btn").style.display = "none";
+            document.getElementById("hint-text").innerText = "";
+            document.getElementById("hint-btn").style.display = "inline-block";
+            
+            document.getElementById("remaining").innerText = targetCount - correctCount;
+            document.getElementById("progress-fill").style.width = (correctCount / targetCount * 100) + "%";
+
+            currentQuestion = quizData[Math.floor(Math.random() * quizData.length)];
+            document.getElementById("emoji-display").innerText = currentQuestion.emoji;
+
+            let choices = [currentQuestion.answer];
+            while(choices.length < 5) {
+                let randomIndex = Math.floor(Math.random() * allChars.length);
+                let char = allChars[randomIndex];
+                if(!choices.includes(char)) choices.push(char);
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            const container = document.getElementById("choices-container");
+            container.innerHTML = "";
+            choices.forEach(c => {
+                const btn = document.createElement("button");
+                btn.className = "choice-btn";
+                btn.innerText = c;
+                btn.onclick = () => checkAnswer(btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function showHint() {
+            document.getElementById("hint-text").innerText = `「${currentQuestion.answer}」からはじまるよ！`;
+            document.getElementById("hint-btn").style.display = "none";
+        }
+
+        function checkAnswer(btn) {
+            if (btn.innerText === currentQuestion.answer) {
+                playSound(523, 659, 0.5); 
+                btn.style.background = "#ff69b4"; btn.style.color = "white";
+                correctCount++;
+                document.getElementById("next-btn").style.display = "inline-block";
+                document.getElementById("hint-btn").style.display = "none";
+                document.getElementById("hint-text").innerText = `せいかい！「${currentQuestion.word}」だね！`;
+                document.querySelectorAll(".choice-btn").forEach(b => b.onclick = null);
+            } else {
+                playSound(200, null, 0.2); 
+                btn.style.opacity = "0.4";
+            }
+        }
+
+        function showClear() {
+            playSound(523, 1046, 1.0);
+            const randomSticker = stickers[Math.floor(Math.random() * stickers.length)];
+            document.getElementById("reward-sticker").src = randomSticker;
+            showScreen('clear-screen');
+        }
+    </script>
+</body>
+</html>
